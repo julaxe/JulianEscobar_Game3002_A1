@@ -10,6 +10,7 @@ public class ArcherController : MonoBehaviour
     public GameObject arrow;
     public bool isShooting;
     public bool arrowReleased;
+    private float initialVelocity;
 
     //animation
     private Animator animator;
@@ -21,6 +22,11 @@ public class ArcherController : MonoBehaviour
 
     //List of Arrows
     public List<GameObject> arrowsList;
+
+    //UI
+    public int score;
+    public bool GameOver;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +36,7 @@ public class ArcherController : MonoBehaviour
 
         //defines the state of shooting the arrow
         isShooting = false;
+        initialVelocity = 0.0f;
 
         //initialize arrowList
         arrowsList = new List<GameObject>();
@@ -39,7 +46,7 @@ public class ArcherController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         //lock the screen on a defined value so the player has a better aim control.
-        lockScreenZRot = 0.7f;
+        lockScreenZRot = 0.9f;
 
         //animation variables
         animator = GetComponent<Animator>();
@@ -58,14 +65,14 @@ public class ArcherController : MonoBehaviour
             }
             isShooting = true;
             arrowReleased = false;
+
+            //longer is hold more initial velocity will have.
+            initialVelocity += 7.0f * Time.deltaTime; // 7 units every 1 seconds.
         }
-        else
+        else if(Input.GetKeyUp(KeyCode.Mouse0))
         {
             arrowReleased = true;
-            if(arrowsList.Count > 0)
-            {
-                arrowsList[arrowsList.Count - 1].transform.parent = null; //last arrow in my list
-            }
+            ShootArrow();
         }
     }
 
@@ -104,8 +111,15 @@ public class ArcherController : MonoBehaviour
         temp.transform.localRotation = arrowLocation.transform.localRotation;
         arrowsList.Add(temp);
         //temp.transform.position = arrowLocation.transform.position;
-
-
-
+    }
+    void ShootArrow()
+    {
+        if (arrowsList.Count > 0) // check if there are arrows created.
+        {
+            arrowsList[arrowsList.Count - 1].GetComponent<ArrowBehaiviour>().velocity = arrowsList[arrowsList.Count - 1].transform.forward * initialVelocity; // we set the initial velocity of the arrow
+            arrowsList[arrowsList.Count - 1].GetComponent<ArrowBehaiviour>().inAir = true; // activate the movement of the arrow
+            arrowsList[arrowsList.Count - 1].transform.parent = null; //last arrow in my list, we deatach the arrow so we can move it freely.
+            initialVelocity = 0.0f; // reset the initial velocity for the next arrow
+        }
     }
 }
